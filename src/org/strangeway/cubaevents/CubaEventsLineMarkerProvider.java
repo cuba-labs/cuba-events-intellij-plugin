@@ -31,6 +31,7 @@ import static org.strangeway.cubaevents.EventsDeclarations.EVENTS_PUBLISH_METHOD
 public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
 
     // todo support ApplicationListener<ApplicationEvent>
+    // todo support @EventListener(AppContextInitializedEvent.class)
 
     public static final Icon EVENT_ICON = IconLoader.getIcon("/icons/event-icon.png");
     public static final Icon SENDER_ICON = IconLoader.getIcon("/icons/sender-icon.png");
@@ -70,6 +71,10 @@ public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
 
             PsiMethod postMethod = eventBusClass.findMethodsByName(EVENTS_PUBLISH_METHODNAME, false)[0];
             PsiMethod method = (PsiMethod) psiElement.getParent();
+            if (method.getParameterList().isEmpty()) {
+                return;
+            }
+
             PsiTypeElement typeElement = method.getParameterList().getParameters()[0].getTypeElement();
             if (typeElement == null) {
                 return;

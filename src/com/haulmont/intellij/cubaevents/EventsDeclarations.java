@@ -1,4 +1,4 @@
-package org.strangeway.cubaevents;
+package com.haulmont.intellij.cubaevents;
 
 public final class EventsDeclarations {
     public static final String EVENTLISTENER_ANNOTATIONNAME = "org.springframework.context.event.EventListener";

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.strangeway.cubaevents;
+package com.haulmont.intellij.cubaevents;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,12 +40,19 @@ import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
-class  ShowUsagesTableCellRenderer implements TableCellRenderer {
+public class ShowUsagesTableCellRenderer implements TableCellRenderer {
 
     private final UsageViewImpl myUsageView;
 
-    ShowUsagesTableCellRenderer(@NotNull UsageViewImpl usageView) {
+    public ShowUsagesTableCellRenderer(@NotNull UsageViewImpl usageView) {
         this.myUsageView = usageView;
+    }
+
+    private static SimpleTextAttributes deriveAttributesWithColor(SimpleTextAttributes attributes, Color fileBgColor) {
+        if (fileBgColor != null) {
+            attributes = attributes.derive(-1, null, fileBgColor, null);
+        }
+        return attributes;
     }
 
     @Override
@@ -110,13 +117,6 @@ class  ShowUsagesTableCellRenderer implements TableCellRenderer {
         return panel;
     }
 
-    private static SimpleTextAttributes deriveAttributesWithColor(SimpleTextAttributes attributes, Color fileBgColor) {
-        if (fileBgColor != null) {
-            attributes = attributes.derive(-1, null, fileBgColor, null);
-        }
-        return attributes;
-    }
-
     private Color getBackgroundColor(boolean isSelected, Usage usage) {
         Color fileBgColor = null;
         if (isSelected) {
@@ -127,8 +127,10 @@ class  ShowUsagesTableCellRenderer implements TableCellRenderer {
                 Project project = myUsageView.getProject();
                 PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
                 if (psiFile != null && psiFile.isValid()) {
-                    final Color color = FileColorManager.getInstance(project).getRendererBackground(psiFile);
-                    if (color != null) fileBgColor = color;
+                    Color color = FileColorManager.getInstance(project).getRendererBackground(psiFile);
+                    if (color != null) {
+                        fileBgColor = color;
+                    }
                 }
             }
         }
@@ -137,7 +139,10 @@ class  ShowUsagesTableCellRenderer implements TableCellRenderer {
 
     private void appendGroupText(final GroupNode node, JPanel panel, Color fileBgColor) {
         UsageGroup group = node == null ? null : node.getGroup();
-        if (group == null) return;
+        if (group == null) {
+            return;
+        }
+
         GroupNode parentGroup = (GroupNode) node.getParent();
         appendGroupText(parentGroup, panel, fileBgColor);
         if (node.canNavigateToSource()) {

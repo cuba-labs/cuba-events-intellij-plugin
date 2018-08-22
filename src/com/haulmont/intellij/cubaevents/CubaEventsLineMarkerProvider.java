@@ -1,4 +1,4 @@
-package org.strangeway.cubaevents;
+package com.haulmont.intellij.cubaevents;
 
 import com.intellij.codeHighlighting.Pass;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
@@ -18,8 +18,8 @@ import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 
-import static org.strangeway.cubaevents.EventsDeclarations.EVENTS_CLASSNAME;
-import static org.strangeway.cubaevents.EventsDeclarations.EVENTS_PUBLISH_METHODNAME;
+import static com.haulmont.intellij.cubaevents.EventsDeclarations.EVENTS_CLASSNAME;
+import static com.haulmont.intellij.cubaevents.EventsDeclarations.EVENTS_PUBLISH_METHODNAME;
 
 /**
  * <p>

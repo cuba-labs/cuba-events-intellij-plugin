@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.strangeway.cubaevents;
+package com.haulmont.intellij.cubaevents;
 
 import com.intellij.ui.ActiveComponent;
 import org.jetbrains.annotations.NotNull;

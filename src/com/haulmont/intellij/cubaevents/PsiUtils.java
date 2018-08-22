@@ -1,4 +1,4 @@
-package org.strangeway.cubaevents;
+package com.haulmont.intellij.cubaevents;
 
 import com.intellij.lang.jvm.JvmClassKind;
 import com.intellij.lang.jvm.JvmModifier;
@@ -6,7 +6,7 @@ import com.intellij.psi.*;
 
 import java.util.Objects;
 
-import static org.strangeway.cubaevents.EventsDeclarations.*;
+import static com.haulmont.intellij.cubaevents.EventsDeclarations.*;
 
 public class PsiUtils {
 

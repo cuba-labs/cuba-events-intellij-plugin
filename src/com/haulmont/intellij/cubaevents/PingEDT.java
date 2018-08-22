@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.strangeway.cubaevents;
+package com.haulmont.intellij.cubaevents;
 
 import com.intellij.openapi.util.Condition;
 import org.jetbrains.annotations.NonNls;
@@ -60,9 +60,10 @@ public class PingEDT {
 
     public PingEDT(@NotNull @NonNls String name, @NotNull Condition<?> shutUpCondition,
                    int maxUnitOfWorkThresholdMs, @NotNull Runnable pingAction) {
-        myName = name;
-        myShutUpCondition = shutUpCondition;
-        myMaxUnitOfWorkThresholdMs = maxUnitOfWorkThresholdMs;
+
+        this.myName = name;
+        this.myShutUpCondition = shutUpCondition;
+        this.myMaxUnitOfWorkThresholdMs = maxUnitOfWorkThresholdMs;
         this.pingAction = pingAction;
     }
 

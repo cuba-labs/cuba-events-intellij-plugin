@@ -1,4 +1,4 @@
-package org.strangeway.cubaevents;
+package com.haulmont.intellij.cubaevents;
 
 import com.intellij.psi.*;
 import com.intellij.usages.Usage;

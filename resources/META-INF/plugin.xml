@@ -1,8 +1,8 @@
 <idea-plugin>
-  <id>org.strangeway.cubaevents</id>
+  <id>com.haulmont.intellij.cubaevents</id>
   <name>CUBA Platform Events Navigator</name>
   <version>1.0</version>
-  <vendor email="github@strangeway.org" url="https://strangeway.org">StrangeWayOrg</vendor>
+  <vendor email="info@cuba-platform.com" url="https://cuba-platform.com">CUBA Platform</vendor>
 
   <description><![CDATA[
       Advanced navigation for Events subsystem of CUBA Platform
@@ -19,7 +19,7 @@
     <!-- Add your extensions here -->
     <codeInsight.lineMarkerProvider
             language="JAVA"
-            implementationClass="org.strangeway.cubaevents.CubaEventsLineMarkerProvider"/>
+            implementationClass="com.haulmont.intellij.cubaevents.CubaEventsLineMarkerProvider"/>
   </extensions>
 
   <application-components>

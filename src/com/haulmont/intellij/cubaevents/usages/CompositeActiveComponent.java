@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.haulmont.intellij.cubaevents;
+package com.haulmont.intellij.cubaevents.usages;
 
 import com.intellij.ui.ActiveComponent;
 import org.jetbrains.annotations.NotNull;

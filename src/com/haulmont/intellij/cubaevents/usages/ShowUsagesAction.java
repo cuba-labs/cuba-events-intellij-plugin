@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.haulmont.intellij.cubaevents;
+package com.haulmont.intellij.cubaevents.usages;
 
 import com.google.common.base.Strings;
 import com.intellij.CommonBundle;

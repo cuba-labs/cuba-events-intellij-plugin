@@ -5,8 +5,9 @@ import com.intellij.usages.Usage;
 import com.intellij.usages.UsageInfo2UsageAdapter;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
-public class SenderFilter implements Filter {
+public class SenderFilter implements Predicate<Usage> {
 
     private final PsiClass eventClass;
 
@@ -15,7 +16,7 @@ public class SenderFilter implements Filter {
     }
 
     @Override
-    public boolean shouldShow(Usage usage) {
+    public boolean test(Usage usage) {
         PsiElement element = ((UsageInfo2UsageAdapter) usage).getElement();
         if (element instanceof PsiReferenceExpression) {
             if ((element = element.getParent()) instanceof PsiMethodCallExpression) {

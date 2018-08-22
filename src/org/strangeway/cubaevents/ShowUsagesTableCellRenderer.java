@@ -45,7 +45,7 @@ class  ShowUsagesTableCellRenderer implements TableCellRenderer {
     private final UsageViewImpl myUsageView;
 
     ShowUsagesTableCellRenderer(@NotNull UsageViewImpl usageView) {
-        myUsageView = usageView;
+        this.myUsageView = usageView;
     }
 
     @Override
@@ -68,7 +68,6 @@ class  ShowUsagesTableCellRenderer implements TableCellRenderer {
             }
             return panel;
         }
-
 
         SimpleColoredComponent textChunks = new SimpleColoredComponent();
         textChunks.setIpad(JBUI.emptyInsets());

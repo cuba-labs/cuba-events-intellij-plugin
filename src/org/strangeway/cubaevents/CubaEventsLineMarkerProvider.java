@@ -1,7 +1,6 @@
 package org.strangeway.cubaevents;
 
 import com.intellij.codeHighlighting.Pass;
-import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -15,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
 
     public static final int MAX_USAGES = 100;
 
-    private static GutterIconNavigationHandler<PsiElement> SHOW_EVENT_USAGES = (e, psiElement) -> {
+    private static void showEventUsages(MouseEvent e, PsiElement psiElement) {
         if (psiElement instanceof PsiIdentifier
                 && psiElement.getParent() instanceof PsiClass) {
 
@@ -55,9 +55,9 @@ public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
             new ShowUsagesAction(new EventClassFilter())
                     .startFindUsages(psiClass, new RelativePoint(e), PsiUtilBase.findEditor(psiClass), MAX_USAGES);
         }
-    };
+    }
 
-    private static GutterIconNavigationHandler<PsiElement> SHOW_SENDERS = (e, psiElement) -> {
+    private static void showEventSenders(MouseEvent e, PsiElement psiElement) {
         if (psiElement instanceof PsiIdentifier
                 && psiElement.getParent() instanceof PsiMethod) {
 
@@ -85,9 +85,9 @@ public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
             new ShowUsagesAction(new SenderFilter(eventClass))
                     .startFindUsages(postMethod, new RelativePoint(e), PsiUtilBase.findEditor(psiElement.getParent()), MAX_USAGES);
         }
-    };
+    }
 
-    private static GutterIconNavigationHandler<PsiElement> SHOW_RECEIVERS = (e, psiElement) -> {
+    private static void showEventReceivers(MouseEvent e, PsiElement psiElement) {
         if (psiElement instanceof PsiMethodCallExpression) {
             PsiMethodCallExpression expression = (PsiMethodCallExpression) psiElement;
             PsiType[] expressionTypes = expression.getArgumentList().getExpressionTypes();
@@ -99,22 +99,22 @@ public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
                 }
             }
         }
-    };
+    }
 
     @Nullable
     @Override
     public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement psiElement) {
         if (PsiUtils.isEventsPublish(psiElement)) {
             return new LineMarkerInfo<>(psiElement, psiElement.getTextRange(), SENDER_ICON,
-                    Pass.UPDATE_ALL, null, SHOW_RECEIVERS,
+                    Pass.UPDATE_ALL, null, CubaEventsLineMarkerProvider::showEventReceivers,
                     GutterIconRenderer.Alignment.LEFT);
         } else if (PsiUtils.isEventsReceiver(psiElement)) {
             return new LineMarkerInfo<>(psiElement, psiElement.getTextRange(), RECEIVER_ICON,
-                    Pass.UPDATE_ALL, null, SHOW_SENDERS,
+                    Pass.UPDATE_ALL, null, CubaEventsLineMarkerProvider::showEventSenders,
                     GutterIconRenderer.Alignment.LEFT);
         } else if (PsiUtils.isEventClass(psiElement)) {
             return new LineMarkerInfo<>(psiElement, psiElement.getTextRange(), EVENT_ICON,
-                    Pass.UPDATE_ALL, null, SHOW_EVENT_USAGES,
+                    Pass.UPDATE_ALL, null, CubaEventsLineMarkerProvider::showEventUsages,
                     GutterIconRenderer.Alignment.LEFT);
         }
         return null;

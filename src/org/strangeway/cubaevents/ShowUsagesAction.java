@@ -82,13 +82,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 
-public class ShowUsagesAction extends AnAction implements PopupAction{
+public class ShowUsagesAction extends AnAction implements PopupAction {
+
+    public static final NullUsage MORE_USAGES_SEPARATOR = NullUsage.INSTANCE;
+
     private static final int USAGES_PAGE_SIZE = 100;
-
-    private Filter filter;
-
-    static final NullUsage MORE_USAGES_SEPARATOR = NullUsage.INSTANCE;
     private static final UsageNode MORE_USAGES_SEPARATOR_NODE = UsageViewImpl.NULL_NODE;
 
     private static final Comparator<UsageNode> USAGE_NODE_COMPARATOR = (c1, c2) -> {
@@ -117,10 +117,14 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
 
     private static final Runnable HIDE_HINTS_ACTION = ShowUsagesAction::hideHints;
 
-    @NotNull private final UsageViewSettings myUsageViewSettings;
-    @Nullable private Runnable mySearchEverywhereRunnable;
+    private Predicate<Usage> filter;
 
-    public ShowUsagesAction(Filter filter) {
+    @NotNull
+    private final UsageViewSettings myUsageViewSettings;
+    @Nullable
+    private Runnable mySearchEverywhereRunnable;
+
+    public ShowUsagesAction(Predicate<Usage> filter) {
         this.filter = filter;
         setInjectedContext(true);
 
@@ -133,7 +137,6 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
         myUsageViewSettings.setGroupByUsageType(false);
         myUsageViewSettings.setGroupByScope(false);
     }
-
 
     @Override
     public void actionPerformed(AnActionEvent e) {
@@ -173,9 +176,8 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
         }
     }
 
-    static void chooseAmbiguousTargetAndPerform(@NotNull final Project project,
-                                                final Editor editor,
-                                                @NotNull PsiElementProcessor<PsiElement> processor) {
+    private static void chooseAmbiguousTargetAndPerform(@NotNull Project project, Editor editor,
+                                                        @NotNull PsiElementProcessor<PsiElement> processor) {
         if (editor == null) {
             Messages.showMessageDialog(project, FindBundle.message("find.no.usages.at.cursor.error"),
                     CommonBundle.getErrorTitle(), Messages.getErrorIcon());
@@ -195,7 +197,6 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
             }
         }
     }
-
 
     private static void hideHints() {
         HintManager.getInstance().hideHints(HintManager.HIDE_BY_ANY_KEY, false, false);
@@ -217,11 +218,9 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
         return options;
     }
 
-    private void showElementUsages(@NotNull final FindUsagesHandler handler,
-                                   final Editor editor,
-                                   @NotNull final RelativePoint popupPosition,
-                                   final int maxUsages,
-                                   @NotNull final FindUsagesOptions options) {
+    private void showElementUsages(@NotNull FindUsagesHandler handler, Editor editor,
+                                   @NotNull RelativePoint popupPosition, int maxUsages,
+                                   @NotNull FindUsagesOptions options) {
         ApplicationManager.getApplication().assertIsDispatchThread();
         final UsageViewSettings usageViewSettings = UsageViewSettings.getInstance();
         final UsageViewSettings savedGlobalSettings = new UsageViewSettings();
@@ -320,7 +319,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
             @Override
             public boolean process(@NotNull Usage usage) {
                 synchronized (usages) {
-                    if (!filter.shouldShow(usage)) return true;
+                    if (!filter.test(usage)) return true;
                     if (visibleNodes.size() >= maxUsages) return false;
                     if (UsageViewManager.isSelfUsage(usage, myUsageTarget)) {
                         return true;
@@ -414,7 +413,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
     }
 
     @NotNull
-    private static UsageNode createStringNode(@NotNull final Object string) {
+    private static UsageNode createStringNode(@NotNull Object string) {
         return new StringNode(string);
     }
 
@@ -460,15 +459,14 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
         if (!popup.isDisposed() && !popup.isVisible()) {
             popup.show(popupPosition);
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
     private void showHint(@NotNull String text,
-                          @Nullable final Editor editor,
-                          @NotNull final RelativePoint popupPosition,
+                          @Nullable Editor editor,
+                          @NotNull RelativePoint popupPosition,
                           @NotNull FindUsagesHandler handler,
                           int maxUsages,
                           @NotNull FindUsagesOptions options) {
@@ -476,20 +474,15 @@ public class ShowUsagesAction extends AnAction implements PopupAction{
         if (editor == null || editor.isDisposed()) {
             HintManager.getInstance().showHint(label, popupPosition, HintManager.HIDE_BY_ANY_KEY |
                     HintManager.HIDE_BY_TEXT_CHANGE | HintManager.HIDE_BY_SCROLLING, 0);
-        }
-        else {
+        } else {
             HintManager.getInstance().showInformationHint(editor, label);
         }
     }
 
     @NotNull
-    private JComponent createHintComponent(@NotNull String text,
-                                           @NotNull final FindUsagesHandler handler,
-                                           @NotNull final RelativePoint popupPosition,
-                                           final Editor editor,
-                                           @NotNull final Runnable cancelAction,
-                                           final int maxUsages,
-                                           @NotNull final FindUsagesOptions options) {
+    private JComponent createHintComponent(@NotNull String text, @NotNull FindUsagesHandler handler,
+                                           @NotNull RelativePoint popupPosition, Editor editor, @NotNull Runnable cancelAction,
+                                           int maxUsages, @NotNull FindUsagesOptions options) {
         JComponent label = HintUtil.createInformationLabel(suggestSecondInvocation(options, handler, text + "&nbsp;"));
         InplaceButton button = createSettingsButton(handler, popupPosition, editor, maxUsages, cancelAction);
 

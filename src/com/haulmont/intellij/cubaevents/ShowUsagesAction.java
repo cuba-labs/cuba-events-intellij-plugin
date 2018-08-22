@@ -16,6 +16,7 @@
 
 package com.haulmont.intellij.cubaevents;
 
+import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -29,7 +30,6 @@ import com.intellij.find.actions.UsageListCellRenderer;
 import com.intellij.find.findUsages.*;
 import com.intellij.find.impl.FindManagerImpl;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.DataManager;
 import com.intellij.ide.util.gotoByName.ModelDiff;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -52,9 +52,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.PsiElementProcessor;
-import com.intellij.psi.search.SearchScope;
 import com.intellij.ui.*;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.popup.AbstractPopup;
@@ -113,6 +111,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
         }
 
         if (o1 instanceof Comparable && o2 instanceof Comparable) {
+            //noinspection unchecked
             return ((Comparable) o1).compareTo(o2);
         }
 
@@ -141,7 +140,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
         myUsageViewSettings.setGroupByFileStructure(false);
         myUsageViewSettings.setGroupByModule(false);
         myUsageViewSettings.setGroupByPackage(false);
-        myUsageViewSettings.setGroupByUsageType(false); // todo enable
+        myUsageViewSettings.setGroupByUsageType(true);
         myUsageViewSettings.setGroupByScope(false);
     }
 
@@ -171,7 +170,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
 
     @NotNull
     private static FindUsagesOptions getDefaultOptions(@NotNull FindUsagesHandler handler) {
-        FindUsagesOptions options = handler.getFindUsagesOptions(DataManager.getInstance().getDataContext());
+        FindUsagesOptions options = handler.getFindUsagesOptions(null);
         // by default, scope in FindUsagesOptions is copied from the FindSettings, but we need a default one
         options.searchScope = FindUsagesManager.getMaximalScope(handler);
         return options;
@@ -191,13 +190,9 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
         }
     }
 
-    private static String searchScopePresentableName(@NotNull FindUsagesOptions options, @NotNull Project project) {
-        return notNullizeScope(options, project).getDisplayName();
-    }
-
-    @NotNull
-    private static SearchScope notNullizeScope(@NotNull FindUsagesOptions options, @NotNull Project project) {
-        return options.searchScope;
+    private static String searchScopePresentableName(@NotNull FindUsagesOptions options,
+                                                     @SuppressWarnings("unused") @NotNull Project project) {
+        return options.searchScope.getDisplayName();
     }
 
     @NotNull
@@ -229,7 +224,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
     private static String getSecondInvocationTitle(@NotNull FindUsagesOptions options, @NotNull FindUsagesHandler handler) {
         if (getShowUsagesShortcut() != null) {
             GlobalSearchScope maximalScope = FindUsagesManager.getMaximalScope(handler);
-            if (!notNullizeScope(options, handler.getProject()).equals(maximalScope)) {
+            if (!options.searchScope.equals(maximalScope)) {
                 return "Press " + KeymapUtil.getShortcutText(getShowUsagesShortcut()) + " again to search in " + maximalScope.getDisplayName();
             }
         }
@@ -482,7 +477,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
 
         addUsageNodes(usageView.getRoot(), usageView, new ArrayList<>());
 
-        TableScrollingUtil.installActions(table);
+        ScrollingUtil.installActions(table);
 
         List<UsageNode> data = collectData(usages, visibleNodes, usageView, presentation);
         setTableModel(table, usageView, data);
@@ -578,9 +573,9 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
                                 String text = UsageViewBundle.message("no.usages.found.in", searchScopePresentableName(options, project));
                                 showHint(text, editor, popupPosition, handler, maxUsages, options);
                                 popup.cancel();
-                            } else {
+                            } /* else {
                                 // all usages filtered out
-                            }
+                            } */
                         } else if (visibleNodes.size() == 1) {
                             if (usages.size() == 1) {
                                 //the only usage
@@ -633,7 +628,8 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
 
     @NotNull
     private JComponent createHintComponent(@NotNull String text, @NotNull FindUsagesHandler handler,
-                                           @NotNull RelativePoint popupPosition, Editor editor, @NotNull Runnable cancelAction,
+                                           @NotNull RelativePoint popupPosition, Editor editor,
+                                           @SuppressWarnings("SameParameterValue") @NotNull Runnable cancelAction,
                                            int maxUsages, @NotNull FindUsagesOptions options) {
 
         JComponent label = HintUtil.createInformationLabel(suggestSecondInvocation(options, handler, text + "&nbsp;"));
@@ -695,7 +691,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
 
     @NotNull
     private JBPopup createUsagePopup(@NotNull List<Usage> usages,
-                                     @NotNull UsageInfoToUsageConverter.TargetElementsDescriptor descriptor,
+                                     @SuppressWarnings("unused") @NotNull UsageInfoToUsageConverter.TargetElementsDescriptor descriptor,
                                      @NotNull Set<UsageNode> visibleNodes,
                                      @NotNull FindUsagesHandler handler,
                                      Editor editor,
@@ -811,7 +807,9 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
         JComponent content = popup[0].getContent();
 
         myWidth = (int) (toolBar.getPreferredSize().getWidth()
-                + new JLabel(getFullTitle(usages, title, hadMoreSeparator, visibleNodes.size() - 1, true)).getPreferredSize().getWidth()
+                + new JLabel(getFullTitle(usages, Strings.nullToEmpty(title),
+                    hadMoreSeparator, visibleNodes.size() - 1, true))
+                .getPreferredSize().getWidth()
                 + settingsButton.getPreferredSize().getWidth());
         myWidth = -1;
         for (AnAction action : toolbar.getChildren(null)) {
@@ -861,12 +859,12 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
 
         int newSelection = updateModel(tableModel, existingData, data, row == -1 ? 0 : row);
         if (newSelection < 0 || newSelection >= tableModel.getRowCount()) {
-            TableScrollingUtil.ensureSelectionExists(table);
+            ScrollingUtil.ensureSelectionExists(table);
             newSelection = table.getSelectedRow();
         } else {
             table.getSelectionModel().setSelectionInterval(newSelection, newSelection);
         }
-        TableScrollingUtil.ensureIndexIsVisible(table, newSelection, 0);
+        ScrollingUtil.ensureIndexIsVisible(table, newSelection, 0);
 
         setSizeAndDimensions(table, popup, popupPosition, data);
     }
@@ -902,7 +900,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
         }
 
         if (!data.isEmpty()) {
-            TableScrollingUtil.ensureSelectionExists(table);
+            ScrollingUtil.ensureSelectionExists(table);
         }
         table.setSize(dimension);
 
@@ -1045,7 +1043,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
         private Object myString;
 
         StringNode(Object string) {
-            super(NullUsage.INSTANCE, new UsageViewTreeModelBuilder(new UsageViewPresentation(), UsageTarget.EMPTY_ARRAY));
+            super(null, NullUsage.INSTANCE);
             myString = string;
         }
 
@@ -1096,6 +1094,7 @@ public class ShowUsagesAction extends AnAction implements PopupAction {
         @Override
         protected void selectElement(Object element, String selectedText) {
             List<UsageNode> data = ((MyModel) getTable().getModel()).getItems();
+            @SuppressWarnings("SuspiciousMethodCalls")
             int i = data.indexOf(element);
             if (i == -1) {
                 return;

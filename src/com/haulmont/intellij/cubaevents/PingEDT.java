@@ -22,7 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PingEDT {
+/**
+ * Runs activity in the EDT.
+ * To schedule activity, call {@link #ping()}. It sets the flag telling that the activity should be run. Once it has run, the flag is cleared.
+ * So you can call ping() several times, but the activity will be executed only once.
+ * If activity took more than {@code maxUnitOfWorkThresholdMs} ms, it will yield till the next invokeLater.
+ */
+class PingEDT {
+    @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
     private final String myName;
     private final Runnable pingAction;
     private volatile boolean stopped;
@@ -58,12 +65,13 @@ public class PingEDT {
         }
     };
 
-    public PingEDT(@NotNull @NonNls String name, @NotNull Condition<?> shutUpCondition,
-                   int maxUnitOfWorkThresholdMs, @NotNull Runnable pingAction) {
-
-        this.myName = name;
-        this.myShutUpCondition = shutUpCondition;
-        this.myMaxUnitOfWorkThresholdMs = maxUnitOfWorkThresholdMs;
+    PingEDT(@NotNull @NonNls String name,
+            @NotNull Condition<?> shutUpCondition,
+            int maxUnitOfWorkThresholdMs,
+            @NotNull Runnable pingAction) {
+        myName = name;
+        myShutUpCondition = shutUpCondition;
+        myMaxUnitOfWorkThresholdMs = maxUnitOfWorkThresholdMs;
         this.pingAction = pingAction;
     }
 

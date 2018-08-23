@@ -136,7 +136,7 @@ public class PsiUtils {
                     }
                 }
 
-                return true;
+                return false;
             }
         }
         return false;

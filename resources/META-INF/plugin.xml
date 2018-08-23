@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.haulmont.intellij.cubaevents</id>
     <name>CUBA Platform Events Navigator</name>
-    <version>1.0</version>
+    <version>0.1.0</version>
     <vendor email="info@cuba-platform.com" url="https://cuba-platform.com">CUBA Platform</vendor>
 
     <description><![CDATA[

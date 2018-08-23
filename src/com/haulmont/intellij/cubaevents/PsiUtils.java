@@ -126,17 +126,11 @@ public class PsiUtils {
                     && !psiClass.hasModifier(JvmModifier.ABSTRACT)
                     && psiClass.getQualifiedName().endsWith("Event")) {
 
-                PsiClass[] supers = psiClass.getSupers();
-                if (supers.length == 0) {
-                    return false;
-                }
-                for (PsiClass superClass : supers) {
+                for (PsiClass superClass : psiClass.getSupers()) {
                     if (Objects.equals(superClass.getName(), APPLICATION_EVENT_CLASSNAME)) {
                         return true;
                     }
                 }
-
-                return false;
             }
         }
         return false;

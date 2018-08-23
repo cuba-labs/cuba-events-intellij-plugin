@@ -28,16 +28,35 @@ public class ReceiverFilter implements Predicate<Usage> {
         PsiElement element = ((UsageInfo2UsageAdapter) usage).getElement();
         if (element instanceof PsiJavaCodeReferenceElement) {
             if ((element = element.getParent()) instanceof PsiTypeElement) {
-                if ((element = element.getParent()) instanceof PsiParameter) {
+                PsiElement parent = element.getParent();
+
+                if (parent instanceof PsiParameter) {
+                    // pattern : method(SomeEvent event)
+                    element = parent;
+
                     if ((element = element.getParent()) instanceof PsiParameterList) {
                         if ((element = element.getParent()) instanceof PsiMethod) {
                             PsiMethod method = (PsiMethod) element;
                             return PsiUtils.isEventsReceiver(method.getNameIdentifier());
                         }
                     }
+                } else if (parent instanceof PsiClassObjectAccessExpression) {
+                    // pattern : @EventListener(SomeEvent.class)
+                    element = parent;
+
+                    if ((element = element.getParent()) instanceof PsiNameValuePair) {
+                        if ((element = element.getParent()) instanceof PsiAnnotationParameterList) {
+                            if ((element = element.getParent()) instanceof PsiAnnotation) {
+                                return EventsDeclarations.EVENTLISTENER_ANNOTATIONNAME.equals(
+                                        ((PsiAnnotation) element).getQualifiedName()
+                                );
+                            }
+                        }
+                    }
                 }
             }
         }
+
         return false;
     }
 }

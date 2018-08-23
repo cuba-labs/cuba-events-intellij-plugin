@@ -20,6 +20,9 @@ import com.haulmont.intellij.cubaevents.usages.ShowUsagesAction;
 import com.intellij.codeHighlighting.Pass;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
+import com.intellij.lang.jvm.JvmClass;
+import com.intellij.lang.jvm.annotation.JvmAnnotationAttribute;
+import com.intellij.lang.jvm.annotation.JvmAnnotationClassValue;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
@@ -35,8 +38,7 @@ import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 
-import static com.haulmont.intellij.cubaevents.EventsDeclarations.EVENTS_CLASSNAME;
-import static com.haulmont.intellij.cubaevents.EventsDeclarations.EVENTS_PUBLISH_METHODNAME;
+import static com.haulmont.intellij.cubaevents.EventsDeclarations.*;
 
 /**
  * <p>
@@ -47,8 +49,7 @@ import static com.haulmont.intellij.cubaevents.EventsDeclarations.EVENTS_PUBLISH
  */
 public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
 
-    // todo support ApplicationListener<ApplicationEvent>
-    // todo support @EventListener(AppContextInitializedEvent.class)
+    // todo support ApplicationListener<ApplicationEvent> - add line marker for #onApplicationEvent()
 
     public static final Icon EVENT_ICON = IconLoader.getIcon("/icons/event-icon.png");
     public static final Icon SENDER_ICON = IconLoader.getIcon("/icons/sender-icon.png");
@@ -80,24 +81,52 @@ public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
 
             Project project = psiElement.getParent().getProject();
             JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-            PsiClass eventBusClass = javaPsiFacade.findClass(EVENTS_CLASSNAME, GlobalSearchScope.allScope(project));
+            PsiClass eventsClass = javaPsiFacade.findClass(EVENTS_CLASSNAME, GlobalSearchScope.allScope(project));
 
-            if (eventBusClass == null) {
+            if (eventsClass == null) {
+                // there is no events class
                 return;
             }
 
-            PsiMethod postMethod = eventBusClass.findMethodsByName(EVENTS_PUBLISH_METHODNAME, false)[0];
+            PsiMethod postMethod = eventsClass.findMethodsByName(EVENTS_PUBLISH_METHODNAME, false)[0];
             PsiMethod method = (PsiMethod) psiElement.getParent();
-            if (method.getParameterList().isEmpty()) {
-                return;
-            }
 
-            PsiTypeElement typeElement = method.getParameterList().getParameters()[0].getTypeElement();
-            if (typeElement == null) {
-                return;
-            }
+            PsiClass eventClass;
+            PsiTypeElement typeElement;
+            if (!method.getParameterList().isEmpty()) {
+                typeElement = method.getParameterList().getParameters()[0].getTypeElement();
 
-            PsiClass eventClass = ((PsiClassType) typeElement.getType()).resolve();
+                if (typeElement == null) {
+                    return;
+                }
+
+                eventClass = ((PsiClassType) typeElement.getType()).resolve();
+            } else {
+                // it could be specified in @EventListener annotation
+                PsiAnnotation annotation = method.getAnnotation(EVENTLISTENER_ANNOTATIONNAME);
+                if (annotation == null) {
+                    return;
+                }
+                JvmAnnotationAttribute jvmAnnotationAttribute = annotation.getAttributes().stream()
+                        .filter(attr -> "value".equals(attr.getAttributeName()) || "classes".equals(attr.getAttributeName()))
+                        .findFirst()
+                        .orElse(null);
+                if (jvmAnnotationAttribute == null) {
+                    return;
+                }
+
+                if (!(jvmAnnotationAttribute.getAttributeValue() instanceof JvmAnnotationClassValue)) {
+                    return;
+                }
+
+                JvmAnnotationClassValue attributeValue = (JvmAnnotationClassValue) jvmAnnotationAttribute.getAttributeValue();
+                JvmClass annotationEventClass = attributeValue.getClazz();
+                if (!(annotationEventClass instanceof PsiClass)) {
+                    return;
+                }
+
+                eventClass = (PsiClass) annotationEventClass;
+            }
 
             new ShowUsagesAction(new SenderFilter(eventClass))
                     .startFindUsages(postMethod, new RelativePoint(e), PsiUtilBase.findEditor(psiElement.getParent()), MAX_USAGES);

@@ -33,9 +33,19 @@ public class PsiUtils {
         return null;
     }
 
+    public static boolean isEventsReceiverMethod(PsiElement psiElement) {
+        if (psiElement instanceof PsiMethod) {
+            PsiIdentifier nameIdentifier = ((PsiMethod) psiElement).getNameIdentifier();
+            if (nameIdentifier != null) {
+                return isEventsReceiver(nameIdentifier);
+            }
+        }
+        return false;
+    }
+
     public static boolean isEventsReceiver(PsiElement psiElement) {
         if (psiElement instanceof PsiIdentifier
-            && psiElement.getParent() instanceof PsiMethod) {
+                && psiElement.getParent() instanceof PsiMethod) {
 
             PsiMethod method = (PsiMethod) psiElement.getParent();
             PsiModifierList modifierList = method.getModifierList();
@@ -43,6 +53,18 @@ public class PsiUtils {
                 if (Objects.equals(psiAnnotation.getQualifiedName(), EVENTLISTENER_ANNOTATIONNAME)) {
                     return true;
                 }
+            }
+
+            // it could be `ApplicationListener#onApplicationEvent` method implementation
+            if (EventsDeclarations.ON_APPLICATION_EVENT_METHODNAME.equals(method.getName())
+                && method.getParameterList().getParametersCount() == 1) {
+                PsiClass containingClass = method.getContainingClass();
+
+                if (containingClass == null) {
+                    return false;
+                }
+
+                return isSuperClassEventListener(containingClass);
             }
         }
         return false;
@@ -65,7 +87,20 @@ public class PsiUtils {
     }
 
     private static boolean isEventBusClass(PsiClass psiClass) {
-        return Objects.equals(psiClass.getName(), EVENTS_SIMPLE_CLASSNAME);
+        return Objects.equals(psiClass.getQualifiedName(), EVENTS_CLASSNAME);
+    }
+
+    private static boolean isSuperClassEventListener(PsiClass psiClass) {
+        PsiClass[] supers = psiClass.getInterfaces();
+        if (supers.length == 0) {
+            return false;
+        }
+        for (PsiClass superClass : supers) {
+            if (Objects.equals(superClass.getQualifiedName(), APPLICATION_LISTENER_INTERFACENAME)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean isSuperClassEventBus(PsiClass psiClass) {
@@ -74,7 +109,7 @@ public class PsiUtils {
             return false;
         }
         for (PsiClass superClass : supers) {
-            if (Objects.equals(superClass.getName(), EVENTS_SIMPLE_CLASSNAME)) {
+            if (Objects.equals(superClass.getQualifiedName(), EVENTS_CLASSNAME)) {
                 return true;
             }
         }

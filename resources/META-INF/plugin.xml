@@ -1,36 +1,39 @@
 <idea-plugin>
-  <id>com.haulmont.intellij.cubaevents</id>
-  <name>CUBA Platform Events Navigator</name>
-  <version>1.0</version>
-  <vendor email="info@cuba-platform.com" url="https://cuba-platform.com">CUBA Platform</vendor>
+    <id>com.haulmont.intellij.cubaevents</id>
+    <name>CUBA Platform Events Navigator</name>
+    <version>1.0</version>
+    <vendor email="info@cuba-platform.com" url="https://cuba-platform.com">CUBA Platform</vendor>
 
-  <description><![CDATA[
+    <description><![CDATA[
       Advanced navigation for Events subsystem of CUBA Platform
     ]]></description>
 
-  <change-notes><![CDATA[
+    <change-notes><![CDATA[
       Implemented navigation for events, senders and receivers.
     ]]>
-  </change-notes>
+    </change-notes>
 
-  <idea-version since-build="173.0"/>
+    <idea-version since-build="173.0"/>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
-    <codeInsight.lineMarkerProvider
-            language="JAVA"
-            implementationClass="com.haulmont.intellij.cubaevents.CubaEventsLineMarkerProvider"/>
-  </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <codeInsight.lineMarkerProvider
+                language="JAVA"
+                implementationClass="com.haulmont.intellij.cubaevents.CubaEventsLineMarkerProvider"/>
 
-  <application-components>
-  </application-components>
+        <implicitUsageProvider
+                implementation="com.haulmont.intellij.cubaevents.CubaEventsImplicitUsageProvider"/>
+    </extensions>
 
-  <project-components>
-  </project-components>
+    <application-components>
+    </application-components>
 
-  <actions>
-  </actions>
+    <project-components>
+    </project-components>
 
-  <depends>com.intellij.modules.java</depends>
+    <actions>
+    </actions>
+
+    <depends>com.intellij.modules.java</depends>
 
 </idea-plugin>

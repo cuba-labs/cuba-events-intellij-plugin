@@ -49,8 +49,6 @@ import static com.haulmont.intellij.cubaevents.EventsDeclarations.*;
  */
 public class CubaEventsLineMarkerProvider implements LineMarkerProvider {
 
-    // todo support ApplicationListener<ApplicationEvent> - add line marker for #onApplicationEvent()
-
     public static final Icon EVENT_ICON = IconLoader.getIcon("/icons/event-icon.png");
     public static final Icon SENDER_ICON = IconLoader.getIcon("/icons/sender-icon.png");
     public static final Icon RECEIVER_ICON = IconLoader.getIcon("/icons/receiver-icon.png");

@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact name="cuba-events-intellij-plugin:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/cuba_events_intellij_plugin_jar</output-path>
+    <root id="root">
+      <element id="archive" name="cuba-events.jar">
+        <element id="module-output" name="cuba-events-intellij-plugin" />
+      </element>
+    </root>
+  </artifact>
+</component>
